@@ -11,9 +11,10 @@ int crypto_verify_32_ref(const unsigned char *b1, const unsigned char *b2)
   return memcmp(b1, b2, 32);
 }
 
-int crypto_hash_sha512_ref(unsigned char *junk ,const unsigned char *junk2,
-                           unsigned long long junk3)
+int crypto_hash_sha512_ref(unsigned char *output ,const unsigned char *input,
+                           unsigned long long len)
 {
+  memset(output, 0, 64);
   return 0;
 }
 
@@ -35,10 +36,11 @@ int main(int argc, char* argv[])
 
   /* verify */
   int result = crypto_sign_open(msg, &msglen, sig, siglen, pubkey);
-  if (result == 0)
+ 
+ if (result == 0)
     printf("success\n");
   else
     printf("failure\n");
  
-  return 0;
+  return 1;
 }
