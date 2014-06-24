@@ -21,12 +21,12 @@ int crypto_hash_sha512_ref(unsigned char *output ,const unsigned char *input,
 
 int main(int argc, char* argv[])
 {
-  unsigned char sig[64];
-  unsigned long long siglen = 64;
-  unsigned char pubkey[32];
-  unsigned char secretkey[64];
   unsigned char msg[100];
   unsigned long long msglen = 100;
+  unsigned char sig[100+64];
+  unsigned long long siglen = 0;
+  unsigned char pubkey[32];
+  unsigned char secretkey[64];
 
   /* generate keypair */
   crypto_sign_keypair(pubkey, secretkey);
@@ -35,12 +35,10 @@ int main(int argc, char* argv[])
   crypto_sign(sig, &siglen, msg, msglen, secretkey);
 
   /* verify */
-  int result = crypto_sign_open(msg, &msglen, sig, siglen, pubkey);
- 
+  int result = crypto_sign_open(msg, &msglen, sig, 64, pubkey);
  if (result == 0)
     printf("success\n");
   else
     printf("failure\n");
- 
   return 1;
 }
