@@ -5,12 +5,13 @@
 void curve25519_keygen(unsigned char* curve25519_pubkey_out,
                        unsigned char* curve25519_privkey_in);
 
-void curve25519_sign(unsigned char* curve25519_privkey,
-                     unsigned char* signature,
+void curve25519_sign(unsigned char* signature_out,
+                     unsigned char* curve25519_privkey,
                      unsigned char* msg, unsigned long msg_len);
 
-int curve25519_verify(unsigned char* curve25519_pubkey,
-                      unsigned char* signature,
+/* returns 0 on success */
+int curve25519_verify(unsigned char* signature,
+                      unsigned char* curve25519_pubkey,                      
                       unsigned char* msg, unsigned long msg_len);
 
 /* helper function - modified version of crypto_sign() to use 

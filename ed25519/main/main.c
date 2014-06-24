@@ -23,16 +23,16 @@ int main(int argc, char* argv[])
 
   curve25519_keygen(pubkey, privkey);
 
-  curve25519_sign(privkey, signature, msg, msg_len);
+  curve25519_sign(signature, privkey, msg, msg_len);
 
-  if (curve25519_verify(pubkey, signature, msg, msg_len) == 0)
+  if (curve25519_verify(signature, pubkey, msg, msg_len) == 0)
     printf("success #1\n");
   else
     printf("failure #1\n");
 
   signature[0] ^= 1;
 
-  if (curve25519_verify(pubkey, signature, msg, msg_len) == 0)
+  if (curve25519_verify(signature, pubkey, msg, msg_len) == 0)
     printf("failure #2\n");
   else
     printf("success #2\n");

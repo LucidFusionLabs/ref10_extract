@@ -33,8 +33,8 @@ void curve25519_keygen(unsigned char* curve25519_pubkey_out,
   fe_tobytes(curve25519_pubkey_out, mont_x);    
 }
 
-void curve25519_sign(unsigned char* curve25519_privkey,
-                     unsigned char* signature,
+void curve25519_sign(unsigned char* signature_out,
+                     unsigned char* curve25519_privkey,
                      unsigned char* msg, unsigned long msg_len)
 {
   ge_p3 ed_pubkey_point; /* Ed25519 pubkey point */
@@ -51,14 +51,14 @@ void curve25519_sign(unsigned char* curve25519_privkey,
 
   /* Perform an Ed25519 signature with explicit private key */
   crypto_sign_modified(sigbuf, &sigbuf_out_len, msg, msg_len, ed_keypair);
-  memmove(signature, sigbuf, 64);
+  memmove(signature_out, sigbuf, 64);
 
   /* Encode the sign bit into signature (in unused high bit of S) */
-   signature[63] |= sign_bit;
+   signature_out[63] |= sign_bit;
 }
 
-int curve25519_verify(unsigned char* curve25519_pubkey,
-                      unsigned char* signature,
+int curve25519_verify(unsigned char* signature,
+                      unsigned char* curve25519_pubkey,
                       unsigned char* msg, unsigned long msg_len)
 {
   fe mont_x, mont_x_minus_one, mont_x_plus_one, inv_mont_x_plus_one;
