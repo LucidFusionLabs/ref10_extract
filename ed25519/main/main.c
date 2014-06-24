@@ -3,13 +3,6 @@
 #include "sha512.h"
 #include "curve_sigs.h"
 
-/* Const-time comparison from SUPERCOP, but here it's only used for 
-   signature verification, so doesn't need to be const-time */
-int crypto_verify_32_ref(const unsigned char *b1, const unsigned char *b2)
-{
-  return memcmp(b1, b2, 32);
-}
-
 int main(int argc, char* argv[])
 {
   unsigned char privkey[32];
@@ -43,7 +36,6 @@ int main(int argc, char* argv[])
     printf("failure #2\n");
   else
     printf("success #2\n");
-
 
   return 1;
 }
