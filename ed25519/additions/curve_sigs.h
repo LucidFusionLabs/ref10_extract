@@ -2,6 +2,9 @@
 #ifndef __CURVE_SIGS_H__
 #define __CURVE_SIGS_H__
 
+void curve25519_keygen(unsigned char* curve25519_pubkey_out,
+                       unsigned char* curve25519_privkey_in);
+
 void curve25519_sign(unsigned char* curve25519_privkey,
                      unsigned char* signature,
                      unsigned char* msg, unsigned long msg_len);

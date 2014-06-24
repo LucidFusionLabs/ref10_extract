@@ -3,6 +3,36 @@
 #include "curve_sigs.h"
 #include "crypto_sign.h"
 
+void curve25519_keygen(unsigned char* curve25519_pubkey_out,
+                       unsigned char* curve25519_privkey_in)
+{
+  ge_p3 ed_pubkey_point; /* Ed25519 pubkey point */
+  unsigned char ed_pubkey[32]; /* privkey followed by pubkey */
+  fe ed_y, one, ed_y_plus_one, one_minus_ed_y, inv_one_minus_ed_y;
+  fe mont_x;
+
+  /* Perform a fixed-base multiplication of the Edwards base point,
+     (which is efficient due to precalculated tables), then convert
+     to the Curve25519 montgomery-format public key.  In particular,
+     convert Curve25519's "montgomery" x-coordinate into an Ed25519
+     "edwards" y-coordinate:
+
+     mont_x = (ed_y +1 1) / (1 - ed_y)
+  */
+
+  ge_scalarmult_base(&ed_pubkey_point, curve25519_privkey_in);
+  ge_p3_tobytes(ed_pubkey, &ed_pubkey_point);
+  ed_pubkey[31] = ed_pubkey[31] & 0x7F; /* Mask off sign bit */
+  fe_frombytes(ed_y, ed_pubkey);
+
+  fe_1(one);
+  fe_add(ed_y_plus_one, ed_y, one);
+  fe_sub(one_minus_ed_y, one, ed_y);  
+  fe_invert(inv_one_minus_ed_y, one_minus_ed_y);
+  fe_mul(mont_x, ed_y_plus_one, inv_one_minus_ed_y);
+  fe_tobytes(curve25519_pubkey_out, mont_x);    
+}
+
 void curve25519_sign(unsigned char* curve25519_privkey,
                      unsigned char* signature,
                      unsigned char* msg, unsigned long msg_len)
@@ -31,11 +61,13 @@ int curve25519_verify(unsigned char* curve25519_pubkey,
                       unsigned char* signature,
                       unsigned char* msg, unsigned long msg_len)
 {
-  fe mont_x, mont_x_minus_1, mont_x_plus_1, inv_mont_x_plus_1;
+  fe mont_x, mont_x_minus_one, mont_x_plus_one, inv_mont_x_plus_one;
   fe one;
   fe ed_y;
   unsigned char ed_pubkey[32];
-  unsigned long long mlen;
+  unsigned long long some_retval;
+  unsigned char verifybuf[msg_len + 64]; /* working buffer */
+  unsigned char verifybuf2[msg_len + 64]; /* working buffer #2 */
 
   /* Convert the Curve25519 public key into an Ed25519 public key.  In
      particular, convert Curve25519's "montgomery" x-coordinate into an
@@ -47,17 +79,19 @@ int curve25519_verify(unsigned char* curve25519_pubkey,
   */
   fe_frombytes(mont_x, curve25519_pubkey);
   fe_1(one);
-  fe_sub(mont_x_minus_1, mont_x, one);
-  fe_add(mont_x_plus_1, mont_x, one);
-  fe_invert(inv_mont_x_plus_1, mont_x_plus_1);
-  fe_mul(ed_y, mont_x_plus_1, inv_mont_x_plus_1);
+  fe_sub(mont_x_minus_one, mont_x, one);
+  fe_add(mont_x_plus_one, mont_x, one);
+  fe_invert(inv_mont_x_plus_one, mont_x_plus_one);
+  fe_mul(ed_y, mont_x_minus_one, inv_mont_x_plus_one);
   fe_tobytes(ed_pubkey, ed_y);
 
   /* Copy the sign bit, and remove it from signature */
   ed_pubkey[31] |= (signature[63] & 0x80);
   signature[63] &= 0x7F;
 
+  memmove(verifybuf, signature, 64);
+  memmove(verifybuf+64, msg, msg_len);
+
   /* Then perform a normal Ed25519 verification, return 0 on success */
-  mlen = msg_len; /* For some reason this is an output param */
-  return crypto_sign_open(msg, &mlen, signature, 64, ed_pubkey);
+  return crypto_sign_open(verifybuf2, &some_retval, verifybuf, 64 + msg_len, ed_pubkey);
 }
