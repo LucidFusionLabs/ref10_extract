@@ -6,9 +6,8 @@
 void curve25519_keygen(unsigned char* curve25519_pubkey_out,
                        unsigned char* curve25519_privkey_in)
 {
-  ge_p3 ed_pubkey_point; /* Ed25519 pubkey point */
-  unsigned char ed_pubkey[32]; /* privkey followed by pubkey */
-  fe ed_y, one, ed_y_plus_one, one_minus_ed_y, inv_one_minus_ed_y;
+  ge_p3 ed; /* Ed25519 pubkey point */
+  fe ed_y, ed_y_plus_one, one_minus_ed_y, inv_one_minus_ed_y;
   fe mont_x;
 
   /* Perform a fixed-base multiplication of the Edwards base point,
@@ -17,20 +16,19 @@ void curve25519_keygen(unsigned char* curve25519_pubkey_out,
      convert Curve25519's "montgomery" x-coordinate into an Ed25519
      "edwards" y-coordinate:
 
-     mont_x = (ed_y +1 1) / (1 - ed_y)
+     mont_x = (ed_y + 1) / (1 - ed_y)
+     
+     with projective coordinates:
+
+     mont_x = (ed_y + ed_z) / (ed_z - ed_y)
   */
 
-  ge_scalarmult_base(&ed_pubkey_point, curve25519_privkey_in);
-  ge_p3_tobytes(ed_pubkey, &ed_pubkey_point);
-  ed_pubkey[31] = ed_pubkey[31] & 0x7F; /* Mask off sign bit */
-  fe_frombytes(ed_y, ed_pubkey);
-
-  fe_1(one);
-  fe_add(ed_y_plus_one, ed_y, one);
-  fe_sub(one_minus_ed_y, one, ed_y);  
+  ge_scalarmult_base(&ed, curve25519_privkey_in);
+  fe_add(ed_y_plus_one, ed.Y, ed.Z);
+  fe_sub(one_minus_ed_y, ed.Z, ed.Y);  
   fe_invert(inv_one_minus_ed_y, one_minus_ed_y);
   fe_mul(mont_x, ed_y_plus_one, inv_one_minus_ed_y);
-  fe_tobytes(curve25519_pubkey_out, mont_x);    
+  fe_tobytes(curve25519_pubkey_out, mont_x);
 }
 
 void curve25519_sign(unsigned char* signature_out,
