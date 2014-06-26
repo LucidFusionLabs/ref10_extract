@@ -4,7 +4,7 @@
 #include "crypto_sign.h"
 
 void curve25519_keygen(unsigned char* curve25519_pubkey_out,
-                       unsigned char* curve25519_privkey_in)
+                       const unsigned char* curve25519_privkey_in)
 {
   ge_p3 ed; /* Ed25519 pubkey point */
   fe ed_y, ed_y_plus_one, one_minus_ed_y, inv_one_minus_ed_y;
@@ -32,32 +32,32 @@ void curve25519_keygen(unsigned char* curve25519_pubkey_out,
 }
 
 void curve25519_sign(unsigned char* signature_out,
-                     unsigned char* curve25519_privkey,
-                     unsigned char* msg, unsigned long msg_len)
+                     const unsigned char* curve25519_privkey,
+                     const unsigned char* msg, const unsigned long msg_len)
 {
   ge_p3 ed_pubkey_point; /* Ed25519 pubkey point */
-  unsigned char ed_keypair[64]; /* privkey followed by pubkey */
+  unsigned char ed_pubkey[32]; /* Ed25519 encoded pubkey */
   unsigned char sigbuf[msg_len + 64]; /* working buffer */
   unsigned long long sigbuf_out_len = 0;
   unsigned char sign_bit = 0;
 
-  /* Convert the Curve25519 privkey to an Ed25519 keypair */
-  memmove(ed_keypair, curve25519_privkey, 32);
+  /* Convert the Curve25519 privkey to an Ed25519 public key */
   ge_scalarmult_base(&ed_pubkey_point, curve25519_privkey);
-  ge_p3_tobytes(ed_keypair + 32, &ed_pubkey_point);
-  sign_bit = ed_keypair[63] & 0x80;
+  ge_p3_tobytes(ed_pubkey, &ed_pubkey_point);
+  sign_bit = ed_pubkey[31] & 0x80;
 
   /* Perform an Ed25519 signature with explicit private key */
-  crypto_sign_modified(sigbuf, &sigbuf_out_len, msg, msg_len, ed_keypair);
+  crypto_sign_modified(sigbuf, &sigbuf_out_len, msg, msg_len, curve25519_privkey,
+    ed_pubkey);
   memmove(signature_out, sigbuf, 64);
 
   /* Encode the sign bit into signature (in unused high bit of S) */
    signature_out[63] |= sign_bit;
 }
 
-int curve25519_verify(unsigned char* signature,
-                      unsigned char* curve25519_pubkey,
-                      unsigned char* msg, unsigned long msg_len)
+int curve25519_verify(const unsigned char* signature,
+                      const unsigned char* curve25519_pubkey,
+                      const unsigned char* msg, const unsigned long msg_len)
 {
   fe mont_x, mont_x_minus_one, mont_x_plus_one, inv_mont_x_plus_one;
   fe one;
@@ -85,9 +85,9 @@ int curve25519_verify(unsigned char* signature,
 
   /* Copy the sign bit, and remove it from signature */
   ed_pubkey[31] |= (signature[63] & 0x80);
-  signature[63] &= 0x7F;
-
   memmove(verifybuf, signature, 64);
+  verifybuf[63] &= 0x7F;
+
   memmove(verifybuf+64, msg, msg_len);
 
   /* Then perform a normal Ed25519 verification, return 0 on success */

@@ -11,16 +11,13 @@
 int crypto_sign_modified(
   unsigned char *sm,unsigned long long *smlen,
   const unsigned char *m,unsigned long long mlen,
-  const unsigned char *sk
+  const unsigned char *sk, const unsigned char* pk
 )
 {
-  unsigned char pk[32];
   unsigned char az[64];
   unsigned char nonce[64];
   unsigned char hram[64];
   ge_p3 R;
-
-  memmove(pk,sk + 32,32);
 
   *smlen = mlen + 64;
   memmove(sm + 64,m,mlen);
