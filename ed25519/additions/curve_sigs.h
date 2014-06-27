@@ -26,7 +26,7 @@ int curve25519_verify(const unsigned char* signature, /* 64 bytes */
 
    The prefix is chosen to distinguish the two SHA512 uses below, since
    prefix is an invalid encoding for R (it would encode a "field element"
-   of 2^255 - 1).  0xFF*32 is set aside for use in ECDH protocols, which
+   of 2^255 - 2).  0xFF*32 is set aside for use in ECDH protocols, which
    is why the first byte here ix 0xFE.
 
    sig_nonce = (random XOR SHA512(prefix || sk || m)) % q
