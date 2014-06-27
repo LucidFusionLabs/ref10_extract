@@ -37,5 +37,31 @@ int main(int argc, char* argv[])
   else
     printf("success #2\n");
 
+
+  printf("Random testing...\n");
+  for (int count = 0; count < 10000; count++) {
+    unsigned char b[64];
+    crypto_hash_sha512_ref(b, privkey, 32);
+    memmove(privkey, b, 32);
+    privkey[0] &= 248;
+    privkey[31] &= 63;
+    privkey[31] |= 64;
+
+    curve25519_keygen(pubkey, privkey);
+
+    curve25519_sign(signature, privkey, msg, msg_len);
+
+    if (curve25519_verify(signature, pubkey, msg, msg_len) != 0) {
+      printf("failure #1 %d\n", count);
+      return -1;
+    }
+    
+    signature[0] ^= 1;
+    
+    if (curve25519_verify(signature, pubkey, msg, msg_len) == 0) {
+      printf("failure #2 %d\n", count);
+      return -1;
+    }
+  }
   return 1;
 }
