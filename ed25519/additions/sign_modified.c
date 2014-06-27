@@ -23,7 +23,13 @@ int crypto_sign_modified(
   *smlen = mlen + 64;
   memmove(sm + 64,m,mlen);
   memmove(sm + 32,sk,32); /* NEW: Use privkey directly for nonce derivation */
-  crypto_hash_sha512(nonce,sm + 32,mlen + 32);
+
+  /* NEW : add prefix to separate hash uses - see .h */
+  sm[0] = 0xFE;
+  for (int count = 1; count < 32; count++)
+    sm[count] = 0xFF;
+
+  crypto_hash_sha512(nonce,sm,mlen + 64);
   memmove(sm + 32,pk,32);
 
   /* NEW: XOR random into nonce */
@@ -38,10 +44,10 @@ int crypto_sign_modified(
   sc_reduce(hram);
   sc_muladd(sm + 32,hram,sk,nonce); /* NEW: Use privkey directly */
 
+  /* NEW: Dummy call to hopefully erase any traces of privkey or 
+     nonce left in the stack from prev call to this func. */
   volatile unsigned char* p = sm+64;
   sc_muladd(sm+64,hram,hram,hram);
-  /* Dummy call to hopefully erase any traces of privkey or nonce
-     left in the stack from prev call to this func */
 
   zeroize(nonce, 64);
   return 0;

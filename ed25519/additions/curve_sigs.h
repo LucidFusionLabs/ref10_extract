@@ -16,7 +16,25 @@ int curve25519_verify(const unsigned char* signature, /* 64 bytes */
                       const unsigned char* msg, const unsigned long msg_len);
 
 /* helper function - modified version of crypto_sign() to use 
-   explicit private key */
+   explicit private key.  In particular:
+
+   sk : private key
+   pk : public key
+   m  : message
+   prefix : 0xFE || [0xFF]*31
+   q  : main subgroup order
+
+   The prefix is chosen to distinguish the two SHA512 uses below, since
+   prefix is an invalid encoding for R (it would encode a "field element"
+   of 2^255 - 1).  0xFF*32 is set aside for use in ECDH protocols, which
+   is why the first byte here ix 0xFE.
+
+   sig_nonce = (random XOR SHA512(prefix || sk || m)) % q
+   R = g^sig_nonce
+   M = SHA512(R || pk || m)
+   S = sig_nonce + (m * sk)
+   signature = (R || S)
+ */
 int crypto_sign_modified(
   unsigned char *sm,unsigned long long *smlen,
   const unsigned char *m,unsigned long long mlen,
