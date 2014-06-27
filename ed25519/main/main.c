@@ -10,6 +10,7 @@ int main(int argc, char* argv[])
   unsigned char signature[64];
   unsigned char msg[100];
   unsigned long long msg_len = 100;
+  unsigned char random[32];
 
   /* Initialize pubkey, privkey, msg */
   memset(msg, 0, 100);
@@ -23,7 +24,7 @@ int main(int argc, char* argv[])
 
   curve25519_keygen(pubkey, privkey);
 
-  curve25519_sign(signature, privkey, msg, msg_len);
+  curve25519_sign(signature, privkey, msg, msg_len, random);
 
   if (curve25519_verify(signature, pubkey, msg, msg_len) == 0)
     printf("success #1\n");
@@ -49,7 +50,7 @@ int main(int argc, char* argv[])
 
     curve25519_keygen(pubkey, privkey);
 
-    curve25519_sign(signature, privkey, msg, msg_len);
+    curve25519_sign(signature, privkey, msg, msg_len, random);
 
     if (curve25519_verify(signature, pubkey, msg, msg_len) != 0) {
       printf("failure #1 %d\n", count);

@@ -12,7 +12,8 @@
 int crypto_sign_modified(
   unsigned char *sm,unsigned long long *smlen,
   const unsigned char *m,unsigned long long mlen,
-  const unsigned char *sk, const unsigned char* pk
+  const unsigned char *sk, const unsigned char* pk,
+  const unsigned char* random
 )
 {
   unsigned char nonce[64];
@@ -24,6 +25,10 @@ int crypto_sign_modified(
   memmove(sm + 32,sk,32); /* NEW: Use privkey directly for nonce derivation */
   crypto_hash_sha512(nonce,sm + 32,mlen + 32);
   memmove(sm + 32,pk,32);
+
+  /* NEW: XOR random into nonce */
+  for (int count=0; count < 32; count++)
+    nonce[count] ^= random[count];
 
   sc_reduce(nonce);
   ge_scalarmult_base(&R,nonce);

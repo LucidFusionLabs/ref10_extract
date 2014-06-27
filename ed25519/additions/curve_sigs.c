@@ -33,7 +33,8 @@ void curve25519_keygen(unsigned char* curve25519_pubkey_out,
 
 void curve25519_sign(unsigned char* signature_out,
                      const unsigned char* curve25519_privkey,
-                     const unsigned char* msg, const unsigned long msg_len)
+                     const unsigned char* msg, const unsigned long msg_len,
+                     const unsigned char* random)
 {
   ge_p3 ed_pubkey_point; /* Ed25519 pubkey point */
   unsigned char ed_pubkey[32]; /* Ed25519 encoded pubkey */
@@ -48,7 +49,7 @@ void curve25519_sign(unsigned char* signature_out,
 
   /* Perform an Ed25519 signature with explicit private key */
   crypto_sign_modified(sigbuf, &sigbuf_out_len, msg, msg_len, curve25519_privkey,
-    ed_pubkey);
+                       ed_pubkey, random);
   memmove(signature_out, sigbuf, 64);
 
   /* Encode the sign bit into signature (in unused high bit of S) */
