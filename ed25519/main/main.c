@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
   unsigned char signature[64];
   unsigned char msg[100];
   unsigned long long msg_len = 100;
-  unsigned char random[32];
+  unsigned char random[64];
 
   /* Initialize pubkey, privkey, msg */
   memset(msg, 0, 100);
@@ -44,7 +44,9 @@ int main(int argc, char* argv[])
     unsigned char b[64];
     crypto_hash_sha512_ref(b, privkey, 32);
     memmove(privkey, b, 32);
-    memmove(random, b+32, 32);
+    crypto_hash_sha512_ref(b, privkey, 32);
+    memmove(random, b, 64);
+
     privkey[0] &= 248;
     privkey[31] &= 63;
     privkey[31] |= 64;

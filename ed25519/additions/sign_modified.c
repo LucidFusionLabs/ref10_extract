@@ -27,7 +27,7 @@ int crypto_sign_modified(
   memmove(sm + 32,pk,32);
 
   /* NEW: XOR random into nonce */
-  for (int count=0; count < 32; count++)
+  for (int count=0; count < 64; count++)
     nonce[count] ^= random[count];
 
   sc_reduce(nonce);
