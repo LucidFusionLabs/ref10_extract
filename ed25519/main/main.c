@@ -44,6 +44,7 @@ int main(int argc, char* argv[])
     unsigned char b[64];
     crypto_hash_sha512_ref(b, privkey, 32);
     memmove(privkey, b, 32);
+    memmove(random, b+32, 32);
     privkey[0] &= 248;
     privkey[31] &= 63;
     privkey[31] |= 64;
@@ -56,13 +57,16 @@ int main(int argc, char* argv[])
       printf("failure #1 %d\n", count);
       return -1;
     }
-    
-    signature[0] ^= 1;
-    
+
+    if (b[63] & 1)
+      signature[count % 64] ^= 1;
+    else
+      msg[count % 100] ^= 1;
     if (curve25519_verify(signature, pubkey, msg, msg_len) == 0) {
       printf("failure #2 %d\n", count);
       return -1;
     }
   }
+  printf("OK\n");
   return 1;
 }
