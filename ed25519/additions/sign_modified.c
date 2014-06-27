@@ -3,6 +3,7 @@
 #include "crypto_hash_sha512.h"
 #include "ge.h"
 #include "sc.h"
+#include "zeroize.h"
 
 /* NEW: Compare to pristine crypto_sign() 
    Uses explicit private key for nonce derivation and as scalar,
@@ -14,7 +15,6 @@ int crypto_sign_modified(
   const unsigned char *sk, const unsigned char* pk
 )
 {
-  unsigned char az[64];
   unsigned char nonce[64];
   unsigned char hram[64];
   ge_p3 R;
@@ -33,5 +33,10 @@ int crypto_sign_modified(
   sc_reduce(hram);
   sc_muladd(sm + 32,hram,sk,nonce); /* NEW: Use privkey directly */
 
+  sc_muladd(sm+64,hram,hram,hram);
+  /* Dummy call to hopefully erase any traces of privkey or nonce
+     left in the stack from prev call to this func */
+
+  zeroize(nonce, 64);
   return 0;
 }
