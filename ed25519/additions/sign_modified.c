@@ -19,6 +19,7 @@ int crypto_sign_modified(
   unsigned char nonce[64];
   unsigned char hram[64];
   ge_p3 R;
+  int count=0;
 
   *smlen = mlen + 64;
   memmove(sm + 64,m,mlen);
@@ -26,14 +27,14 @@ int crypto_sign_modified(
 
   /* NEW : add prefix to separate hash uses - see .h */
   sm[0] = 0xFE;
-  for (int count = 1; count < 32; count++)
+  for (count = 1; count < 32; count++)
     sm[count] = 0xFF;
 
   crypto_hash_sha512(nonce,sm,mlen + 64);
   memmove(sm + 32,pk,32);
 
   /* NEW: XOR random into nonce */
-  for (int count=0; count < 64; count++)
+  for (count=0; count < 64; count++)
     nonce[count] ^= random[count];
 
   sc_reduce(nonce);
