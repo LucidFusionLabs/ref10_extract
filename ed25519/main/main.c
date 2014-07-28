@@ -3,7 +3,7 @@
 #include "crypto_hash_sha512.h"
 #include "curve_sigs.h"
 
-#define MSG_LEN 16
+#define MSG_LEN 200
 
 int main(int argc, char* argv[])
 {
