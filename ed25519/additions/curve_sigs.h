@@ -15,24 +15,25 @@ int curve25519_sign(unsigned char* signature_out, /* 64 bytes */
 
 /* returns 0 on success */
 int curve25519_verify(const unsigned char* signature, /* 64 bytes */
-                      const unsigned char* curve25519_pubkey, /* 32 bytes */               
+                      const unsigned char* curve25519_pubkey, /* 32 bytes */
                       const unsigned char* msg, const unsigned long msg_len);
 
 /* helper function - modified version of crypto_sign() to use 
    explicit private key.  In particular:
 
-   sk : private key
-   pk : public key
-   m  : message
+   sk     : private key
+   pk     : public key
+   msg    : message
    prefix : 0xFE || [0xFF]*31
-   q  : main subgroup order
+   random : 64 bytes random
+   q      : main subgroup order
 
    The prefix is chosen to distinguish the two SHA512 uses below, since
    prefix is an invalid encoding for R (it would encode a "field element"
    of 2^255 - 2).  0xFF*32 is set aside for use in ECDH protocols, which
    is why the first byte here ix 0xFE.
 
-   sig_nonce = (random XOR SHA512(prefix || sk || m)) % q
+   sig_nonce = SHA512(prefix || sk ||  msg || random) % q
    R = g^sig_nonce
    M = SHA512(R || pk || m)
    S = sig_nonce + (m * sk)
