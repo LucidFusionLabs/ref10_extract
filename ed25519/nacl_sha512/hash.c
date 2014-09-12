@@ -4,8 +4,10 @@ D. J. Bernstein
 Public domain.
 */
 
-#include "crypto_hashblocks_sha512.h"
-#include "crypto_hash.h"
+#include <stdint.h>
+typedef uint64_t uint64;
+
+extern int crypto_hashblocks_sha512(unsigned char *statebytes,const unsigned char *in,unsigned long long inlen);
 
 #define blocks crypto_hashblocks_sha512
 
@@ -20,9 +22,7 @@ static const unsigned char iv[64] = {
   0x5b,0xe0,0xcd,0x19,0x13,0x7e,0x21,0x79
 } ;
 
-typedef unsigned long long uint64;
-
-int crypto_hash(unsigned char *out,const unsigned char *in,unsigned long long inlen)
+int crypto_hash_sha512(unsigned char *out,const unsigned char *in,unsigned long long inlen)
 {
   unsigned char h[64];
   unsigned char padded[256];
