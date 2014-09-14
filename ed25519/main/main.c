@@ -12,17 +12,7 @@ int main(int argc, char* argv[])
   unsigned char signature[64];
   unsigned char msg[MSG_LEN];
   unsigned char random[64];
-
-  /* Initialize pubkey, privkey, msg */
-  memset(msg, 0, MSG_LEN);
-  memset(privkey, 0, 32);
-  memset(pubkey, 0, 32);
-  privkey[0] &= 248;
-  privkey[31] &= 63;
-  privkey[31] |= 64;
-
-  privkey[8] = 189; /* just so there's some bits set */
-
+  int count = 0;
 
   /* SHA512 test */
   unsigned char sha512_input[112] = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu";
@@ -38,6 +28,16 @@ int main(int argc, char* argv[])
 0x5E, 0x96, 0xE5, 0x5B, 0x87, 0x4B, 0xE9, 0x09
 };
   unsigned char sha512_actual_output[64];
+
+  /* Initialize pubkey, privkey, msg */
+  memset(msg, 0, MSG_LEN);
+  memset(privkey, 0, 32);
+  memset(pubkey, 0, 32);
+  privkey[0] &= 248;
+  privkey[31] &= 63;
+  privkey[31] |= 64;
+
+  privkey[8] = 189; /* just so there's some bits set */
 
   crypto_hash_sha512(sha512_actual_output, sha512_input, sizeof(sha512_input));
   if (memcmp(sha512_actual_output, sha512_correct_output, 64) != 0)
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 
 
   printf("Random testing...\n");
-  for (int count = 0; count < 10000; count++) {
+  for (count = 0; count < 10000; count++) {
     unsigned char b[64];
     crypto_hash_sha512(b, privkey, 32);
     memmove(privkey, b, 32);
