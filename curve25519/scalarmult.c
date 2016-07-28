@@ -1,7 +1,6 @@
-#include "crypto_scalarmult.h"
 #include "fe.h"
 
-int crypto_scalarmult(unsigned char *q,
+int crypto_scalarmult_curve25519_ref10(unsigned char *q,
   const unsigned char *n,
   const unsigned char *p)
 {
